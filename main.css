@@ -49,6 +49,12 @@ body {
 .part h2 {
     font-size: 17px;
 }
+.atrakcje {
+    height: 104px;
+}
+.atrakcje h2 {
+    margin: 1px 0;
+}
 .countdown {
     font-size: 41px;
     font-family: LatoWebThin;
@@ -79,6 +85,6 @@ body {
 #footer {
     text-align: center;
     font-family: LatoWebThin;
-    font-size: 14px;
+    font-size: 15px;
     margin-top: 7px;
 }
