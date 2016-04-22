@@ -2,6 +2,16 @@ body {
     font-family: LatoWeb;
     background-color: whitesmoke;
 }
+.logo {
+    position: absolute;
+    top: 31px;
+}
+.left {
+    left: 31px;
+}
+.right {
+    right: 31px;
+}
 #top {
     text-align: center;
 }
@@ -65,4 +75,10 @@ body {
 }
 .present {
     top: 0;
+}
+#footer {
+    text-align: center;
+    font-family: LatoWebThin;
+    font-size: 14px;
+    margin-top: 7px;
 }
