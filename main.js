@@ -1,4 +1,4 @@
-var godziny = [[0, "08:10", "22:48", "22:51", "22:54", "22:57", "23:00", "23:03", "23:06", "23:09", "23:12"],[0, "22:46", "22:49", "22:52", "22:55", "22:58", "23:01", "23:04", "23:07", "23:10", "23:13"],[0, "22:47", "22:50", "22:53", "22:56", "22:59", "23:02", "23:05", "23:08", "23:11", "23:14"]];
+var godziny = [[0, "08:35","08:40","08:45","08:50","08:55"],[0, "08:36","08:41","08:46","08:51","08:56"],[0, "08:37","08:42","08:47","08:52","08:57"]];
 $(document).ready(function() {
     var d = new Date();
     currentTime = timeParser(addZero(d.getHours()).toString() + ":" + addZero(d.getMinutes()).toString());
@@ -74,5 +74,14 @@ function timeParser(timestr) {
 
 function timeRev(timeint) {
     minuty=timeint%60;
-    return Math.floor(timeint/60).toString()+":"+minuty.toString();
+    return addZero(Math.floor(timeint/60).toString())+":"+addZero(minuty.toString());
+}
+
+function genInterval(timestr, interval, times) {
+    time0 = timeParser(timestr);
+    text = "";
+    for (i=0; i<times; i++) {
+        text += "\"" + timeRev(time0+i*interval) + "\",";
+    }
+    return text.substring(0, text.length-1);
 }
