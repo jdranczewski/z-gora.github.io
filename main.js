@@ -55,6 +55,10 @@ $(document).ready(function() {
         })
     }
     
+    $("#clock").click(function() {
+        document.documentElement.webkitRequestFullscreen();
+    })
+    
     setInterval(update, 1000);
 });
 

@@ -1,6 +1,8 @@
 body {
     font-family: LatoWeb;
     background-color: whitesmoke;
+    min-width: 1214px;
+    position: relative;
 }
 .logo {
     position: absolute;
