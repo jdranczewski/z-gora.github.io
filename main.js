@@ -1,91 +1,120 @@
-var godziny = [[0, "10:10", "11:25", "12:40", "13:55"],[0, "10:41", "11:06", "11:56", "12:21", "13:11", "13:36"],[0, "10:25", "11:00", "11:40", "12:15", "12:55", "13:30"],[0, "10:25", "10:50", "11:40", "12:05", "12:55", "13:20"]];
+var verses = [];
+current = 0;
 $(document).ready(function() {
-    var d = new Date();
-    currentTime = timeParser(addZero(d.getHours()).toString() + ":" + addZero(d.getMinutes()).toString());
-    //startup:
-    for(i=0; i<godziny.length; i++) {
-        for(j=1; j<godziny[i].length; j++) {
-            if(timeParser(godziny[i][j]) >= currentTime) {
-                $("#part"+i+" .times").append("<div class='time'>"+godziny[i][j]+"</div>");
-            }
+    $("#select-from").change(function() {
+        if($("#select-to").val()!="--") getAvailableSongs();
+    });
+    $("#select-to").change(function() {
+        if($("#select-from").val()!="--") getAvailableSongs();
+    });
+    function getAvailableSongs() {
+        $.get("availableSongs.php?from="+$("#select-from").val()+"&to="+$("#select-to").val(), function(data) {
+            $("#select-song").html(data);
+        });
+    }
+    $("#song-add-button").click(function() {
+        if($("#select-song").val() != undefined && $("#select-song").val() != "--") {
+            $("#playlist-body").append("<li class='playlist-elem' id='"+$("#select-song").val()+"'><span class='drag-handle'>☰</span>"+$("#select-song option:selected").text()+"<span class='playlist-remove'>X</span></li>");
+        } else {
+            alert("Choose languages and a song!\n\nWybierz języki i pieśń!");
         }
-    }
-    
-    prev=0;
-    function update() {
-        d = new Date();
-        currentTime = timeParser(addZero(d.getHours()).toString() + ":" + addZero(d.getMinutes()).toString());
-        $("#hour").text(addZero(d.getHours()));
-        $("#minutes").text(addZero(d.getMinutes()));
-        $("#seconds").text(addZero(d.getSeconds()));
-        if(prev!=d.getMinutes()) {
-            for (i=0; i<godziny.length; i++) {
-                for (j=1; j<godziny[i].length; j++) {
-                    if (timeParser(godziny[i][j]) >= currentTime) {
-                        nextOne = j;
-                        break;
-                    }
-                }
-                //alert(i+" "+nextOne);
-                if(j==godziny[i].length) {
-                    $("#part"+i+" .countdown span").text("--");
-                } else {
-                    left = timeParser(godziny[i][nextOne])-currentTime;
-                    if (left==0) {
-                        wyjscie(i, left);
-                    } else {
-                        changeTime(i, left);
-                    }
-                    
-                }
-            }
+    });
+    var list = document.getElementById('playlist-body');
+    var sortable = new Sortable(list, {
+        animation: 150,
+        filter: '.playlist-remove',
+        onFilter: function (evt) {
+          var el = sortable.closest(evt.item); // get dragged item
+          el && el.parentNode.removeChild(el);
         }
-        prev = d.getMinutes();
-    }
+    });
     
-    function wyjscie(i, value) {
-        $("#part"+i+" .countdown .go").addClass("present");
-        setTimeout(function() {$("#part"+i+" .countdown span").text(value);}, 1700);
-        setTimeout(function(){ $("#part"+i+" .countdown .go").removeClass("present"); $("#part"+i+" .times .time").first().remove();}, 60000);
-    }
-    function changeTime(i, value) {
-        $("#part"+i+" .countdown span").animate({opacity: 0}, 1000, function() {
-            $(this).text(value);
-            $(this).animate({opacity: 1}, 1000);
-        })
-    }
+    $("#start").click(function() {
+        question = "";
+        $(".playlist-elem").each(function() {
+            question+=$(this).attr('id')+";";
+        });
+        question = question.substr(0, question.length-1);
+        if (question != "") {
+
+            //Go fullscreen
+            var el = document.body;
+            var requestMethod = el.requestFullScreen || el.webkitRequestFullScreen 
+            || el.mozRequestFullScreen || el.msRequestFullScreen;
+            if (requestMethod) {
+              requestMethod.call(el);
+            } else if (typeof window.ActiveXObject !== "undefined") {
+              var wscript = new ActiveXObject("WScript.Shell");
+              if (wscript !== null) {
+                wscript.SendKeys("{F11}");
+              }
+            }
+
+            $.get("constructPlaylist.php?playlist="+question, function(data) {
+                verses = JSON.parse(data);
+                current = 0;
+                $("#words-left").html(verses[0][0].replace(/\n/g,'<br/>'));
+                $("#words-right").html(verses[0][1].replace(/\n/g,'<br/>'));
+                $("#nav").show();
+                $("#chooser").fadeOut("slow");
+                navTimeout = setTimeout(function(){$("#nav").fadeOut()}, 5000);
+            });
+        } else {
+            alert("Add songs to the Playlist using the menu on your left!\n\nDodaj pieśni do Playlisty używając menu po lewej!");
+        }
+    });
     
-    $("#clock").click(function() {
-        document.documentElement.webkitRequestFullscreen();
+    $(document).keydown(function(e) {
+        if((e.which == 37 ||e.which == 40) && current-1 >= 0) {
+            current -= 1;
+            $("#words-left").html(verses[current][0].replace(/\n/g,'<br/>'));
+            $("#words-right").html(verses[current][1].replace(/\n/g,'<br/>'));
+        } else if ((e.which == 39 || e.which == 32 || e.which == 40) && current+1<verses.length) {
+            current += 1;
+            $("#words-left").html(verses[current][0].replace(/\n/g,'<br/>'));
+            $("#words-right").html(verses[current][1].replace(/\n/g,'<br/>'));
+        }
+    });
+    $("#left-button").click(function() {
+        if(current-1 >= 0) {
+            current -= 1;
+            $("#words-left").html(verses[current][0].replace(/\n/g,'<br/>'));
+            $("#words-right").html(verses[current][1].replace(/\n/g,'<br/>'));
+        }
+    });
+    $("#right-button").click(function() {
+        if(current+1<verses.length) {
+            current += 1;
+            $("#words-left").html(verses[current][0].replace(/\n/g,'<br/>'));
+            $("#words-right").html(verses[current][1].replace(/\n/g,'<br/>'));
+        }
+    });
+    $("#fullscreen").click(function() {
+        if ((document.fullScreenElement && document.fullScreenElement !== null) ||    
+        (!document.mozFullScreen && !document.webkitIsFullScreen)) {
+         if (document.documentElement.requestFullScreen) {  
+           document.documentElement.requestFullScreen();  
+         } else if (document.documentElement.mozRequestFullScreen) {  
+           document.documentElement.mozRequestFullScreen();  
+         } else if (document.documentElement.webkitRequestFullScreen) {  
+           document.documentElement.webkitRequestFullScreen(Element.ALLOW_KEYBOARD_INPUT);  
+         }  
+       } else {  
+         if (document.cancelFullScreen) {  
+           document.cancelFullScreen();  
+         } else if (document.mozCancelFullScreen) {  
+           document.mozCancelFullScreen();  
+         } else if (document.webkitCancelFullScreen) {  
+           document.webkitCancelFullScreen();  
+         }  
+       } 
     })
-    
-    setInterval(update, 1000);
+    $("#exit").click(function() {
+        $("#chooser").fadeIn("slow");
+    })
+    $("#nav-input").mousemove(function() {
+        clearTimeout(navTimeout);
+        $("#nav").fadeIn()
+        navTimeout = setTimeout(function(){$("#nav").fadeOut()}, 5000);
+    })
 });
-
-//Funkcje pomocnicze
-function addZero(num) {
-    num = num.toString();
-    if (num.length == 1) {
-        num = "0"+num;
-    }
-    return num;
-}
-
-function timeParser(timestr) {
-    arr = timestr.split(":");
-    return 60*parseInt(arr[0])+parseInt(arr[1]);
-}
-
-function timeRev(timeint) {
-    minuty=timeint%60;
-    return addZero(Math.floor(timeint/60).toString())+":"+addZero(minuty.toString());
-}
-
-function genInterval(timestr, interval, times) {
-    time0 = timeParser(timestr);
-    text = "";
-    for (i=0; i<times; i++) {
-        text += "\"" + timeRev(time0+i*interval) + "\",";
-    }
-    return text.substring(0, text.length-1);
-}
